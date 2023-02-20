@@ -211,6 +211,10 @@ private:
 class GridWorld
 {
 public:
+  std::vector<int> r(){
+    GetExploringCellIndices(myvector);
+    return myvector;
+  }
   explicit GridWorld(ros::NodeHandle& nh);
   explicit GridWorld(int row_num = 1, int col_num = 1, int level_num = 1, double cell_size = 6.0,
                      double cell_height = 6.0, int nearby_grid_num = 5);
@@ -304,6 +308,11 @@ public:
   void GetNeighborCellIndices(const geometry_msgs::Point& position, const Eigen::Vector3i& neighbor_range,
                               std::vector<int>& neighbor_indices);
   void GetExploringCellIndices(std::vector<int>& exploring_cell_indices);
+  void GetCoveredCellIndices(std::vector<int>& covered_cell_indices);
+  void SetCoveredByOthers(std::vector<int>& covered_cell_indices);
+  void SetExploringCells(std::vector<int>& exploring_cell_indices);
+  void SetNogo(const geometry_msgs::Point& robot_position);
+  void GetNogoCellIndices(std::vector<int>& nogo_cell_indices);
   CellStatus GetCellStatus(int cell_ind);
   void SetCellStatus(int cell_ind, CellStatus status);
   geometry_msgs::Point GetCellPosition(int cell_ind);
@@ -374,12 +383,15 @@ private:
   int kCellAlmostCoveredToExploringThr;
   int kCellUnknownToExploringThr;
 
+  std::vector<int> myvector;
+
   std::vector<Cell> cells_;
   std::unique_ptr<grid_ns::Grid<Cell>> subspaces_;
   bool initialized_;
   bool use_keypose_graph_;
   int cur_keypose_id_;
   geometry_msgs::Point robot_position_;
+  geometry_msgs::Point robot2_position_;
   geometry_msgs::Point origin_;
   std::vector<int> neighbor_cell_indices_;
   std::vector<int> almost_covered_cell_indices_;
@@ -393,5 +405,6 @@ private:
   int cur_keypose_graph_node_ind_;
   int cur_robot_cell_ind_;
   int prev_robot_cell_ind_;
+  int prev_ugv2_cell_ind_;
 };
 }  // namespace grid_world_ns

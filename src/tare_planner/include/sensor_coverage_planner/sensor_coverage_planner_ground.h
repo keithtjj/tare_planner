@@ -12,8 +12,15 @@
 
 #include <cmath>
 #include <vector>
+#include <queue>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseArray.h>
+
 // ROS
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
@@ -127,8 +134,21 @@ struct PlannerData
   std::unique_ptr<pointcloud_utils_ns::PCLCloud<pcl::PointXYZI>> point_cloud_manager_neighbor_cloud_;
   std::unique_ptr<pointcloud_utils_ns::PCLCloud<pcl::PointXYZI>> reordered_global_subspace_cloud_;
 
+  std::vector<int> explore_sub;
+  std::vector<int> covered_sub;
+
+  // Define a queue to store the previous points of the robot.
+  std::vector<geometry_msgs::Point> previous_points;
+
+  int redflag = 0;
+  int priority = 1;
+  int ugv2priority;
+
+  std::vector<Eigen::Vector3d> pub_position_ ;
+
   nav_msgs::Odometry keypose_;
   geometry_msgs::Point robot_position_;
+  geometry_msgs::Point robot2_position_;
   geometry_msgs::Point last_robot_position_;
   lidar_model_ns::LiDARModel robot_viewpoint_;
   exploration_path_ns::ExplorationPath exploration_path_;
@@ -162,6 +182,7 @@ public:
   explicit SensorCoveragePlanner3D(ros::NodeHandle& nh, ros::NodeHandle& nh_p);
   bool initialize(ros::NodeHandle& nh, ros::NodeHandle& nh_p);
   void execute(const ros::TimerEvent&);
+  void pub(const ros::TimerEvent&);
   ~SensorCoveragePlanner3D() = default;
 
 private:
@@ -199,6 +220,8 @@ private:
   ros::Time global_direction_switch_time_;
 
   ros::Timer execution_timer_;
+  ros::Timer pub_timer_;
+
 
   // ROS subscribers
   ros::Subscriber exploration_start_sub_;
@@ -209,6 +232,11 @@ private:
   ros::Subscriber coverage_boundary_sub_;
   ros::Subscriber viewpoint_boundary_sub_;
   ros::Subscriber nogo_boundary_sub_;
+//added by Jerome
+  ros::Subscriber ugv2_odom_sub_;
+  ros::Subscriber ugv2_covered_subspaces_sub_;
+  ros::Subscriber ugv2_exploring_subspaces_sub_;
+  ros::Subscriber ugv2_priority_sub_;
 
   // ROS publishers
   ros::Publisher global_path_full_publisher_;
@@ -224,8 +252,33 @@ private:
   ros::Publisher momentum_activation_count_pub_;
   // Debug
   ros::Publisher pointcloud_manager_neighbor_cells_origin_pub_;
+  //added by Jerome
+  ros::Publisher exploring_subspaces;
+  ros::Publisher covered_subspaces;
+  ros::Publisher stop_finish_pub_;
+  ros::Publisher exploration_time_pub_;
+  ros::Publisher redflag_pub_;
+  ros::Publisher priority_pub_;
+  ros::Publisher keypose_pub_;
+  ros::Publisher point_cloud_pub;
+
+
+
+  void exploringbyothers(std::vector<int> vector);
+  std::vector<int> getexplore();
+  std::vector<int> getcovered();
+  void coveredbyothers(std::vector<int> vector);
+  void get_sub_pos(std::vector<int> vector);
+  void get_sub_status();
+  bool isInsideCircularBoundary(double centerX, double centerY, double centerZ, double radius, double pointX, double pointY, double pointZ);
+  void VehicleCollisionAvoidance(const exploration_path_ns::ExplorationPath& global_path, 
+                                                        const exploration_path_ns::ExplorationPath& local_path);
+
 
   // Callback functions
+  //added by Jerome
+  void odomcallback(const nav_msgs::Odometry::ConstPtr& state_estimation_msg);
+
   void ExplorationStartCallback(const std_msgs::Bool::ConstPtr& start_msg);
   void StateEstimationCallback(const nav_msgs::Odometry::ConstPtr& state_estimation_msg);
   void RegisteredScanCallback(const sensor_msgs::PointCloud2ConstPtr& registered_cloud_msg);
@@ -234,6 +287,13 @@ private:
   void CoverageBoundaryCallback(const geometry_msgs::PolygonStampedConstPtr& polygon_msg);
   void ViewPointBoundaryCallback(const geometry_msgs::PolygonStampedConstPtr& polygon_msg);
   void NogoBoundaryCallback(const geometry_msgs::PolygonStampedConstPtr& polygon_msg);
+
+//added by Jerome
+  void CoveredSubspacesCallback(const std_msgs::Int32MultiArray& covered_subspaces_msg);
+  void ExploringSubspacesCallback(const std_msgs::Int32MultiArray& exploring_subspaces_msg);
+  void prioritycallback(const std_msgs::Int32& priority_msg);
+
+
 
   void SendInitialWaypoint();
   void UpdateKeyposeGraph();
@@ -252,6 +312,20 @@ private:
   void PublishLocalPlanningVisualization(const exploration_path_ns::ExplorationPath& local_path);
   exploration_path_ns::ExplorationPath ConcatenateGlobalLocalPath(
       const exploration_path_ns::ExplorationPath& global_path, const exploration_path_ns::ExplorationPath& local_path);
+
+//added by Jerome
+  void PublishCoveredSubspaces(std::vector<int> vector);
+  void PublishExploringSubspaces(std::vector<int> vector);
+  void PublishStoppedState();
+  void PublishExplorationTime();
+  void Publishredflag();
+  void Publishpriority();
+  void store_previous_point(const geometry_msgs::Point& current_point);
+
+  void Publishkeypose();
+
+
+
 
   void PublishRuntime();
   double GetRobotToHomeDistance();
