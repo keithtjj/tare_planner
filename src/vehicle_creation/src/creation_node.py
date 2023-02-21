@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import rospy
 from std_msgs.msg import String, Int32MultiArray, Int32, Bool
@@ -17,8 +17,9 @@ vehicle_list = []
 # test = rospy.get_param('vehicle')
 # vehicle_name = config['vehicle']
 # vehicle_num = vehicle_name.split('/')
+param_file = "/home/j/test/tare_planner/src/mqtt_bridge/config/la_params.yaml"
 
-with open('/home/intern/test/tare_planner/src/mqtt_bridge/config/la_params.yaml') as file:
+with open(param_file) as file:
     config = yaml.safe_load(file)
 
 vehicle_name = config['vehicle']
