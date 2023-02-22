@@ -33,4 +33,7 @@
     <!-- Python Script to Launch Availability publish Node -->
     <node pkg="vehicle_creation" type="availability_pub.py" name="availability_publisher" output="screen"/>
 
+    <!-- Python Script to Launch Priority publish Node -->
+    <node pkg="vehicle_creation" type="priority_pub.py" name="priority_publisher" output="screen"/>
+
 </launch>
