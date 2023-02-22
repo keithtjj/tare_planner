@@ -134,21 +134,12 @@ struct PlannerData
   std::unique_ptr<pointcloud_utils_ns::PCLCloud<pcl::PointXYZI>> point_cloud_manager_neighbor_cloud_;
   std::unique_ptr<pointcloud_utils_ns::PCLCloud<pcl::PointXYZI>> reordered_global_subspace_cloud_;
 
+//added by Jerome
   std::vector<int> explore_sub;
   std::vector<int> covered_sub;
 
-  // Define a queue to store the previous points of the robot.
-  std::vector<geometry_msgs::Point> previous_points;
-
-  int redflag = 0;
-  int priority = 1;
-  int ugv2priority;
-
-  std::vector<Eigen::Vector3d> pub_position_ ;
-
   nav_msgs::Odometry keypose_;
   geometry_msgs::Point robot_position_;
-  geometry_msgs::Point robot2_position_;
   geometry_msgs::Point last_robot_position_;
   lidar_model_ns::LiDARModel robot_viewpoint_;
   exploration_path_ns::ExplorationPath exploration_path_;
@@ -216,6 +207,7 @@ private:
   int direction_no_change_count_;
   int momentum_activation_count_;
 
+//added by Jerome
   ros::Time start_time_;
   ros::Time global_direction_switch_time_;
 
@@ -233,10 +225,8 @@ private:
   ros::Subscriber viewpoint_boundary_sub_;
   ros::Subscriber nogo_boundary_sub_;
 //added by Jerome
-  ros::Subscriber ugv2_odom_sub_;
-  ros::Subscriber ugv2_covered_subspaces_sub_;
-  ros::Subscriber ugv2_exploring_subspaces_sub_;
-  ros::Subscriber ugv2_priority_sub_;
+  ros::Subscriber covered_subspaces_sub_;
+  ros::Subscriber exploring_subspaces_sub_;
 
   // ROS publishers
   ros::Publisher global_path_full_publisher_;
@@ -257,10 +247,6 @@ private:
   ros::Publisher covered_subspaces;
   ros::Publisher stop_finish_pub_;
   ros::Publisher exploration_time_pub_;
-  ros::Publisher redflag_pub_;
-  ros::Publisher priority_pub_;
-  ros::Publisher keypose_pub_;
-  ros::Publisher point_cloud_pub;
 
 
 
@@ -318,14 +304,6 @@ private:
   void PublishExploringSubspaces(std::vector<int> vector);
   void PublishStoppedState();
   void PublishExplorationTime();
-  void Publishredflag();
-  void Publishpriority();
-  void store_previous_point(const geometry_msgs::Point& current_point);
-
-  void Publishkeypose();
-
-
-
 
   void PublishRuntime();
   double GetRobotToHomeDistance();

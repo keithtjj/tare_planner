@@ -533,6 +533,51 @@ int GridWorld::GetCellStatusCount(grid_world_ns::CellStatus status)
   return count;
 }
 
+//added by Jerome
+void GridWorld::GetCoveredCellIndices(std::vector<int>& covered_cell_indices)
+{
+  covered_cell_indices.clear();
+  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
+  {
+    if (subspaces_->GetCell(i).GetStatus() == CellStatus::COVERED)
+    {
+      covered_cell_indices.push_back(i);
+    }
+  }
+
+}
+
+//added by Jerome
+void GridWorld::SetCoveredByOthers(std::vector<int>& covered_cell_indices)
+{
+  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
+  {
+    for (auto it = covered_cell_indices.begin(); it != covered_cell_indices.end(); ++it)
+      if (i == *it)
+      {
+        subspaces_->GetCell(i).SetStatus(CellStatus::COVERED_BY_OTHERS);
+      }
+  }
+
+}
+
+//added by Jerome
+void GridWorld::SetExploringCells(std::vector<int>& exploring_cell_indices)
+{
+  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
+  {
+    for (auto it = exploring_cell_indices.begin(); it != exploring_cell_indices.end(); ++it)
+      if (i == *it)
+      {
+        if ((subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED) && (subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED_BY_OTHERS) && (subspaces_->GetCell(i).GetStatus() != CellStatus::NOGO))
+        {
+          subspaces_->GetCell(i).SetStatus(CellStatus::EXPLORING);
+        }
+      }
+  }
+
+}
+
 void GridWorld::UpdateCellStatus(const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager)
 {
   int exploring_count = 0;

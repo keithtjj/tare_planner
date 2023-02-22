@@ -193,6 +193,7 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
   lidar_model_ns::LiDARModel::setCloudDWZResol(pd_.planning_env_->GetPlannerCloudResolution());
 
   execution_timer_ = nh.createTimer(ros::Duration(1.0), &SensorCoveragePlanner3D::execute, this);
+  pub_timer_ = nh.createTimer(ros::Duration(1.0), &SensorCoveragePlanner3D::pub, this);
 
   exploration_start_sub_ =
       nh.subscribe(pp_.sub_start_exploration_topic_, 5, &SensorCoveragePlanner3D::ExplorationStartCallback, this);
@@ -210,6 +211,11 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
   nogo_boundary_sub_ =
       nh.subscribe(pp_.sub_nogo_boundary_topic_, 1, &SensorCoveragePlanner3D::NogoBoundaryCallback, this);
 
+  // added by Jerome
+  covered_subspaces_sub_ =
+      nh.subscribe("/Combined_Covered_Indices", 1, &SensorCoveragePlanner3D::CoveredSubspacesCallback, this);
+  exploring_subspaces_sub_ =
+      nh.subscribe("/Combined_Exploring_Indices", 1, &SensorCoveragePlanner3D::ExploringSubspacesCallback, this);
   global_path_full_publisher_ = nh.advertise<nav_msgs::Path>("global_path_full", 1);
   global_path_publisher_ = nh.advertise<nav_msgs::Path>("global_path", 1);
   old_global_path_publisher_ = nh.advertise<nav_msgs::Path>("old_global_path", 1);
@@ -218,6 +224,11 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
   exploration_path_publisher_ = nh.advertise<nav_msgs::Path>("exploration_path", 1);
   waypoint_pub_ = nh.advertise<geometry_msgs::PointStamped>(pp_.pub_waypoint_topic_, 2);
   exploration_finish_pub_ = nh.advertise<std_msgs::Bool>(pp_.pub_exploration_finish_topic_, 2);
+  //added by Jerome
+  covered_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Covered_Subspace_Indices", 2);
+  exploring_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Exploring_Subspace_Indices", 2);
+  stop_finish_pub_ = nh.advertise<std_msgs::Bool>("stop", 2);
+  exploration_time_pub_ = nh.advertise<std_msgs::Float32>("exploration_time", 2);
   runtime_breakdown_pub_ = nh.advertise<std_msgs::Int32MultiArray>(pp_.pub_runtime_breakdown_topic_, 2);
   runtime_pub_ = nh.advertise<std_msgs::Float32>(pp_.pub_runtime_topic_, 2);
   momentum_activation_count_pub_ = nh.advertise<std_msgs::Int32>(pp_.pub_momentum_activation_count_topic_, 2);
@@ -302,6 +313,61 @@ void SensorCoveragePlanner3D::RegisteredScanCallback(const sensor_msgs::PointClo
     pd_.registered_scan_stack_->cloud_->clear();
     keypose_cloud_update_ = true;
   }
+}
+
+//added by Jerome
+//Get exploring subspaces
+std::vector<int> SensorCoveragePlanner3D::getexplore()
+{
+  pd_.grid_world_->GetExploringCellIndices(pd_.explore_sub);
+  return pd_.explore_sub;
+}
+
+//Get covered subspaces
+std::vector<int> SensorCoveragePlanner3D::getcovered()
+{
+  pd_.grid_world_->GetCoveredCellIndices(pd_.covered_sub);
+  return pd_.covered_sub;
+}
+
+//Set subspaces covered by others
+void SensorCoveragePlanner3D::coveredbyothers(std::vector<int> vector)
+{
+  pd_.grid_world_->SetCoveredByOthers(vector);
+}
+
+//Set subspaces exploring by others
+void SensorCoveragePlanner3D::exploringbyothers(std::vector<int> vector)
+{
+  pd_.grid_world_->SetExploringCells(vector);
+}
+
+//Get subspace position
+void SensorCoveragePlanner3D::get_sub_pos(std::vector<int> vector)
+{
+  geometry_msgs::Point cell_center;
+  for (auto it = vector.begin(); it != vector.end(); ++it)
+  {
+    cell_center = pd_.grid_world_->GetCellPosition(*it);
+    std::cout << cell_center;
+  }
+}
+
+//Callback to set covered subspaces by other ugv to covered for this ugv
+void SensorCoveragePlanner3D::CoveredSubspacesCallback(const std_msgs::Int32MultiArray& covered_subspaces_msg)
+{
+    std::vector<int> test{};
+    std::vector<int> temp;
+    test = covered_subspaces_msg.data;
+    coveredbyothers(test);
+}
+
+//Callback to set exploring subspaces by other ugv to exploring for this ugv
+void SensorCoveragePlanner3D::ExploringSubspacesCallback(const std_msgs::Int32MultiArray& exploring_subspaces_msg)
+{
+    std::vector<int> test{};
+    test = exploring_subspaces_msg.data;
+    exploringbyothers(test);
 }
 
 void SensorCoveragePlanner3D::TerrainMapCallback(const sensor_msgs::PointCloud2ConstPtr& terrain_map_msg)
@@ -1137,6 +1203,38 @@ void SensorCoveragePlanner3D::PublishWaypoint()
   misc_utils_ns::Publish<geometry_msgs::PointStamped>(waypoint_pub_, waypoint, kWorldFrameID);
 }
 
+//Publish Covered Subspaces - added by Jerome
+void SensorCoveragePlanner3D::PublishCoveredSubspaces(std::vector<int> vector)
+{
+  std_msgs::Int32MultiArray msg;
+  // set up dimensions
+  msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+  msg.layout.dim[0].size = vector.size();
+  msg.layout.dim[0].stride = 1;
+  msg.layout.dim[0].label = "CS"; // or whatever name you typically use to index vec1
+
+  // copy in the data
+  msg.data.clear();
+  msg.data.insert(msg.data.end(), vector.begin(), vector.end());
+  covered_subspaces.publish(msg);
+}
+
+//Publish Exploring Subspaces - added by Jerome
+void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<int> vector)
+{
+  std_msgs::Int32MultiArray msg;
+  // set up dimensions
+  msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+  msg.layout.dim[0].size = vector.size();
+  msg.layout.dim[0].stride = 1;
+  msg.layout.dim[0].label = "CS"; // or whatever name you typically use to index vec1
+
+  // copy in the data
+  msg.data.clear();
+  msg.data.insert(msg.data.end(), vector.begin(), vector.end());
+  exploring_subspaces.publish(msg);
+}
+
 void SensorCoveragePlanner3D::PublishRuntime()
 {
   local_viewpoint_sampling_runtime_ = pd_.local_coverage_planner_->GetViewPointSamplingRuntime() / 1000;
@@ -1178,6 +1276,20 @@ void SensorCoveragePlanner3D::PublishExplorationState()
   std_msgs::Bool exploration_finished_msg;
   exploration_finished_msg.data = exploration_finished_;
   exploration_finish_pub_.publish(exploration_finished_msg);
+}
+
+void SensorCoveragePlanner3D::PublishExplorationTime()
+{
+  std_msgs::Float32 exploration_time_msg;
+  exploration_time_msg.data = ((ros::Time::now() - start_time_).toSec());
+  exploration_time_pub_.publish(exploration_time_msg);
+}
+
+void SensorCoveragePlanner3D::PublishStoppedState()
+{
+  std_msgs::Bool stop_finished_msg;
+  stop_finished_msg.data = stopped_;
+  stop_finish_pub_.publish(stop_finished_msg);
 }
 
 void SensorCoveragePlanner3D::PrintExplorationStatus(std::string status, bool clear_last_line)
@@ -1296,7 +1408,7 @@ void SensorCoveragePlanner3D::execute(const ros::TimerEvent&)
     exploration_path_ns::ExplorationPath global_path;
     GlobalPlanning(global_cell_tsp_order, global_path);
 
-    // Local TSP
+    // Local TSP 
     exploration_path_ns::ExplorationPath local_path;
     LocalPlanning(uncovered_point_num, uncovered_frontier_point_num, global_path, local_path);
 
@@ -1339,4 +1451,19 @@ void SensorCoveragePlanner3D::execute(const ros::TimerEvent&)
     PublishRuntime();
   }
 }
+
+void SensorCoveragePlanner3D::pub(const ros::TimerEvent&)
+{
+  PublishStoppedState();
+  PublishExplorationTime();
+
+  std::vector<int> myvector;
+  myvector = getexplore();
+  PublishExploringSubspaces(myvector);
+
+  std::vector<int> mycovered;
+  mycovered = getcovered();
+  PublishCoveredSubspaces(mycovered);
+}
+
 }  // namespace sensor_coverage_planner_3d_ns
