@@ -17,8 +17,8 @@ param_file = os.path.join(project_dir, "mqtt_bridge/config/la_params.yaml")
 
 vehicle_name_list = []
 vehicle_list = []
-exploring_cell_indices = []
-covered_cell_indices = []
+exploring_cell_indices = [0]
+covered_cell_indices = [0]
 
 with open(param_file) as file:
     config = yaml.safe_load(file)
@@ -140,9 +140,11 @@ class Vehicle:
 
     def exploring_subspace_callback(self, array_msg):
         self.exploring_cells_indices = array_msg.data
+        print(self.exploring_cells_indices)
 
     def covered_subspace_callback(self, array_msg):
         self.covered_cells_indices = array_msg.data
+        print(self.covered_cells_indices)
     
     def priority_callback(self, int_msg):
         self.priority = int_msg.data
@@ -210,14 +212,20 @@ def updateVehicleStatus(vehicles):
             print(vehicle.name + "is invading personal space")
 
 def pub_exploring_cell_indices(vehicles):
+    exploring_array = Int32MultiArray()
     for vehicle in vehicles:
         exploring_cell_indices.append(vehicle.exploring_cells_indices)
-    exploring_indices_publisher.publish(exploring_cell_indices)
+    my_1d_array = exploring_cell_indices.flatten()
+    exploring_array.data = my_1d_array.tolist()
+    exploring_indices_publisher.publish(exploring_array)
 
 def pub_covered_cell_indices(vehicles):
+    cover_array = Int32MultiArray()
     for vehicle in vehicles:
         covered_cell_indices.append(vehicle.covered_cells_indices)
-    covered_indices_publisher.publish(covered_cell_indices)
+    my_1d_array = covered_cell_indices.flatten()
+    cover_array.data = my_1d_array.tolist()
+    covered_indices_publisher.publish(cover_array)
 
 if __name__ == '__main__':
     # Initialize the ROS node
@@ -226,15 +234,13 @@ if __name__ == '__main__':
     exploring_indices_publisher = rospy.Publisher("/Combined_Exploring_Indices", Int32MultiArray, queue_size=10)
     covered_indices_publisher = rospy.Publisher("/Combined_Covered_Indices", Int32MultiArray, queue_size=10)
 
-
-r = rospy.Rate(0.5) # 10hz
-while not (rospy.is_shutdown() or KeyboardInterrupt):
-
-    availtopics()
-    updateVehicleStatus(vehicle_list)
-    pub_covered_cell_indices(vehicle_list)
-    pub_exploring_cell_indices(vehicle_list)
-    rospy.sleep(1)
+    r = rospy.Rate(0.5) # 10hz
+    while not rospy.is_shutdown():
+        availtopics()
+        updateVehicleStatus(vehicle_list)
+        pub_covered_cell_indices(vehicle_list)
+        pub_exploring_cell_indices(vehicle_list)
+        rospy.sleep(1)
 
 
 
