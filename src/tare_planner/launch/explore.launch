@@ -36,4 +36,7 @@
     <!-- Python Script to Launch Priority publish Node -->
     <node pkg="vehicle_creation" type="priority_pub.py" name="priority_publisher" output="screen"/>
 
+    <!-- Python Script to Launch Waypoint publish Node -->
+    <node pkg="vehicle_creation" type="planner_node.py" name="planner_node" output="screen"/>
+
 </launch>
