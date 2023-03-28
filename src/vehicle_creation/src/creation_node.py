@@ -270,7 +270,6 @@ class CoverageMapGenerator:
         if self.binary_map is not None:
             self.coverage_map_pub.publish(self.binary_map)
 
-
 class BufferedVoronoiCell:
     def __init__(self, pos, rs):
         self.pos = pos
