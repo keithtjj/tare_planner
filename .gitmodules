@@ -3,7 +3,7 @@
 	url = https://github.com/proprogramerX/vehicle_creation.git
 [submodule "mqtt_bridge"]
 	path = src/mqtt_bridge
-	url = https://github.com/proprogramerX/mqtt_bridge.git
+	url = https://github.com/keithtjj/mqtt_bridge.git
 [submodule "multi_ugv_behaviours"]
 	path = src/multi_ugv_behaviours
 	url = https://github.com/keithtjj/multi_ugv_behaviours.git
