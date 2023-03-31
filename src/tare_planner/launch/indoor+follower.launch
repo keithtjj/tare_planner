@@ -21,6 +21,6 @@
     </group>
        
     <!-- Python Script to Launch Add-On Nodes -->
-    <node pkg="multi_ugv_add_ons" type="saver.py" name="logger" output="screen" cwd="node"/>
-    <node pkg="multi_ugv_add_ons" type="follower.py" name="follower" output="screen"/>
+    <node pkg="multi_ugv_behaviours" type="saver.py" name="logger" output="screen" cwd="node"/>
+    <node pkg="multi_ugv_behaviours" type="follower.py" name="follower" output="screen"/>
 </launch>
