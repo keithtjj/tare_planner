@@ -2,3 +2,5 @@ build/
 log/
 .catkin_workspace
 devel/
+traced_model.pt
+frame.png
