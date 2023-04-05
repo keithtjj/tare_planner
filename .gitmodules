@@ -8,5 +8,5 @@
 	path = src/multi_ugv_behaviours
 	url = https://github.com/keithtjj/multi_ugv_behaviours.git
 [submodule "yolov7-ros"]
-	path = src/yolov7-ros
-	url = https://github.com/keithtjj/yolov7-ros.git
+	path = src/yolov7_ros
+	url = https://github.com/keithtjj/yolov7_ros.git
