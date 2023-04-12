@@ -32,10 +32,7 @@ def store_tare_callback(data):
     #rospy.loginfo("Received point at time %d", data.header.stamp.to_sec())
     global tare_wp
     tare_wp = data
-    #publish_wp()
-
-def publish_wp():
-    pub.publish(tare_wp)
+    #pub.publish(tare_wp)
 
 
 if __name__ == '__main__':
