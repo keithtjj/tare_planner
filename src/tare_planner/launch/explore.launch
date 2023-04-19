@@ -40,4 +40,21 @@
     <node pkg="multi_ugv_behaviours" type="saver.py" name="saver" output="screen" cwd="node"/>
     <node pkg="multi_ugv_behaviours" type="hunter.py" name="hunter" output="screen"/>
 
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+	<param name="resolution" value="0.05" />	
+	<!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+	<param name="frame_id" type="string" value="map" />
+	<!-- maximum range to integrate (speedup!) -->
+	<param name="sensor_model/max_range" value="-1" />
+	<!-- data source to integrate (PointCloud2) -->
+	<remap from="cloud_in" to="/registered_scan" />
+    </node>
+
+    <node pkg="far_planner" type="far_planner" name="far_planner" output="log">
+        <rosparam command="load" file="$(find far_planner)/config/default.yaml" />
+        <remap from="/odom_world" to="/state_estimation"/> 
+        <remap from="/terrain_cloud" to="/terrain_map_ext"/>
+        <remap from="/scan_cloud" to="/registered_scan"/>
+        <remap from="/terrain_local_cloud" to="/terrain_map"/>
+    </node>
 </launch>

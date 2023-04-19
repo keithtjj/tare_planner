@@ -10,3 +10,7 @@
 [submodule "yolov7-ros"]
 	path = src/yolov7_ros
 	url = https://github.com/keithtjj/yolov7_ros.git
+[submodule "octomap_mapping"]
+	path = src/octomap_mapping
+	url = https://github.com/OctoMap/octomap_mapping.git
+	branch = kinetic-devel
