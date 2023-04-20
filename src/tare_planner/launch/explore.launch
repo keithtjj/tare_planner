@@ -37,8 +37,8 @@
     <node pkg="vehicle_creation" type="planner_node.py" name="planner_node" output="screen"/>
 
     <!-- Python Script to Launch Behaviour Nodes -->
-    <node pkg="multi_ugv_behaviours" type="saver.py" name="saver" output="screen" cwd="node"/>
-    <node pkg="multi_ugv_behaviours" type="hunter.py" name="hunter" output="screen"/>
+    <node pkg="multi_ugv_behaviours" type="saver.py" name="saver" output="screen" respawn="true"/>
+    <node pkg="multi_ugv_behaviours" type="hunter.py" name="hunter" output="screen" respawn="true"/>
 
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
 	<param name="resolution" value="0.05" />	
