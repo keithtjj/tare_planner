@@ -797,7 +797,7 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
   std::vector<int> exploring_cell_indices;
   for (int i = 0; i < subspaces_->GetCellNumber(); i++)
   {
-    /** if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
+    if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
     {
       if (std::find(neighbor_cell_indices_.begin(), neighbor_cell_indices_.end(), i) == neighbor_cell_indices_.end() ||
           (subspaces_->GetCell(i).GetViewPointIndices().empty() && subspaces_->GetCell(i).GetVisitCount() > 1))
@@ -816,7 +816,8 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
           connection_point_geo.y = connection_point.y();
           connection_point_geo.z = connection_point.z();
 
-          bool reachable = false;
+          //bool reachable = false;
+          bool reachable = true;
           if (keypose_graph->IsPositionReachable(connection_point_geo))
           {
             reachable = true;
@@ -850,9 +851,7 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
           }
         }
       }
-    } **/
-    if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
-    {exploring_cell_indices.push_back(i);}
+    }
   }
 
   /****** Return home ******/
