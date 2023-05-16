@@ -464,6 +464,18 @@ void GridWorld::GetExploringCellIndices(std::vector<int>& exploring_cell_indices
   }
 }
 
+void GridWorld::GetUnseenCellIndices(std::vector<int>& unseen_cell_indices)
+{
+  unseen_cell_indices.clear();
+  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
+  {
+    if (subspaces_->GetCell(i).GetStatus() == CellStatus::UNSEEN)
+    {
+      unseen_cell_indices.push_back(i);
+    }
+  }
+}
+
 CellStatus GridWorld::GetCellStatus(int cell_ind)
 {
   MY_ASSERT(subspaces_->InRange(cell_ind));
@@ -785,7 +797,7 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
   std::vector<int> exploring_cell_indices;
   for (int i = 0; i < subspaces_->GetCellNumber(); i++)
   {
-    if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
+    /** if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
     {
       if (std::find(neighbor_cell_indices_.begin(), neighbor_cell_indices_.end(), i) == neighbor_cell_indices_.end() ||
           (subspaces_->GetCell(i).GetViewPointIndices().empty() && subspaces_->GetCell(i).GetVisitCount() > 1))
@@ -838,14 +850,18 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
           }
         }
       }
-    }
+    } **/
+    if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
+    {exploring_cell_indices.push_back(i);}
   }
 
   /****** Return home ******/
+  std::cout << exploring_cell_indices.size() << std::endl;
+  std::cout << exploring_cell_indices.empty() << std::endl;
   if (exploring_cell_indices.empty())
   {
     return_home_ = true;
-
+    
     geometry_msgs::Point home_position;
 
     nav_msgs::Path return_home_path;

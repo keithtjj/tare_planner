@@ -309,6 +309,7 @@ public:
                               std::vector<int>& neighbor_indices);
   void GetExploringCellIndices(std::vector<int>& exploring_cell_indices);
   void GetCoveredCellIndices(std::vector<int>& covered_cell_indices);
+  void GetUnseenCellIndices(std::vector<int>& unseen_cell_indices);
   void SetCoveredByOthers(std::vector<int>& covered_cell_indices);
   void SetExploringCells(std::vector<int>& exploring_cell_indices);
   CellStatus GetCellStatus(int cell_ind);

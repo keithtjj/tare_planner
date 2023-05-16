@@ -227,6 +227,7 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
   //added by Jerome
   covered_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Covered_Subspace_Indices", 2);
   exploring_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Exploring_Subspace_Indices", 2);
+  unseen_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Unseen_Subspace_Indices", 2);
   stop_finish_pub_ = nh.advertise<std_msgs::Bool>("stop", 2);
   exploration_time_pub_ = nh.advertise<std_msgs::Float32>("exploration_time", 2);
   runtime_breakdown_pub_ = nh.advertise<std_msgs::Int32MultiArray>(pp_.pub_runtime_breakdown_topic_, 2);
@@ -328,6 +329,13 @@ std::vector<int> SensorCoveragePlanner3D::getcovered()
 {
   pd_.grid_world_->GetCoveredCellIndices(pd_.covered_sub);
   return pd_.covered_sub;
+}
+
+//Get unseen subspaces
+std::vector<int> SensorCoveragePlanner3D::getunseen()
+{
+  pd_.grid_world_->GetUnseenCellIndices(pd_.unseen_sub);
+  return pd_.unseen_sub;
 }
 
 //Set subspaces covered by others
@@ -1235,6 +1243,22 @@ void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<int> vector)
   exploring_subspaces.publish(msg);
 }
 
+//Publish Exploring Subspaces - added by Keith
+void SensorCoveragePlanner3D::PublishUnseenSubspaces(std::vector<int> vector)
+{
+  std_msgs::Int32MultiArray msg;
+  // set up dimensions
+  msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+  msg.layout.dim[0].size = vector.size();
+  msg.layout.dim[0].stride = 1;
+  msg.layout.dim[0].label = "CS"; // or whatever name you typically use to index vec1
+
+  // copy in the data
+  msg.data.clear();
+  msg.data.insert(msg.data.end(), vector.begin(), vector.end());
+  unseen_subspaces.publish(msg);
+}
+
 void SensorCoveragePlanner3D::PublishRuntime()
 {
   local_viewpoint_sampling_runtime_ = pd_.local_coverage_planner_->GetViewPointSamplingRuntime() / 1000;
@@ -1464,6 +1488,10 @@ void SensorCoveragePlanner3D::pub(const ros::TimerEvent&)
   std::vector<int> mycovered;
   mycovered = getcovered();
   PublishCoveredSubspaces(mycovered);
+
+  std::vector<int> vecky;
+  vecky = getunseen();
+  PublishUnseenSubspaces(vecky);
 }
 
 }  // namespace sensor_coverage_planner_3d_ns

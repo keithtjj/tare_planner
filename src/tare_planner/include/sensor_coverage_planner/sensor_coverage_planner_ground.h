@@ -137,6 +137,7 @@ struct PlannerData
 //added by Jerome
   std::vector<int> explore_sub;
   std::vector<int> covered_sub;
+   std::vector<int> unseen_sub;
 
   nav_msgs::Odometry keypose_;
   geometry_msgs::Point robot_position_;
@@ -245,6 +246,7 @@ private:
   //added by Jerome
   ros::Publisher exploring_subspaces;
   ros::Publisher covered_subspaces;
+  ros::Publisher unseen_subspaces;
   ros::Publisher stop_finish_pub_;
   ros::Publisher exploration_time_pub_;
 
@@ -253,6 +255,7 @@ private:
   void exploringbyothers(std::vector<int> vector);
   std::vector<int> getexplore();
   std::vector<int> getcovered();
+  std::vector<int> getunseen();
   void coveredbyothers(std::vector<int> vector);
   void get_sub_pos(std::vector<int> vector);
   void get_sub_status();
@@ -302,6 +305,7 @@ private:
 //added by Jerome
   void PublishCoveredSubspaces(std::vector<int> vector);
   void PublishExploringSubspaces(std::vector<int> vector);
+  void PublishUnseenSubspaces(std::vector<int> vector);
   void PublishStoppedState();
   void PublishExplorationTime();
 
