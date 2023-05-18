@@ -311,8 +311,12 @@ public:
                               std::vector<int>& neighbor_indices);
   void GetExploringCellIndices(std::vector<std::vector<int>>& exploring_cell_indices);
   void GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cell_indices);
-  void SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg);
-  void SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg);
+  void SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg,
+                          const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
+                          const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph);
+  void SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg, 
+                         const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
+                         const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph);
   CellStatus GetCellStatus(int cell_ind);
   void SetCellStatus(int cell_ind, CellStatus status);
   geometry_msgs::Point GetCellPosition(int cell_ind);

@@ -552,7 +552,9 @@ void GridWorld::GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cel
   }
 }
 
-void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg)
+void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg, 
+                                   const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
+                                   const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph)
 {
   for (tare_msgs::Subspace subby : covered_cell_msg.data) {
     int i = subby.main_indice;
@@ -563,6 +565,8 @@ void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_
         if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
           subspaces_->GetCell(i).AddConnectedCell(ci);
           subspaces_->GetCell(ci).AddConnectedCell(i);
+          nav_msgs::Path path_in_between = viewpoint_manager->GetViewPointShortestPath(i, ci);
+          keypose_graph->AddPath(path_in_between);
         }
       }
     }
@@ -570,7 +574,9 @@ void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_
 }
 
 //added by Jerome, improved by Keith
-void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg)
+void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg, 
+                                  const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
+                                  const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph)
 {
   for (tare_msgs::Subspace subby : exploring_cell_msg.data) {
     int i = subby.main_indice;
@@ -581,6 +587,8 @@ void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell
         if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
           subspaces_->GetCell(i).AddConnectedCell(ci);
           subspaces_->GetCell(ci).AddConnectedCell(i);
+          nav_msgs::Path path_in_between = viewpoint_manager->GetViewPointShortestPath(i, ci);
+          keypose_graph->AddPath(path_in_between);
         }
       }
     }
