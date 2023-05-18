@@ -452,30 +452,6 @@ void GridWorld::GetNeighborCellIndices(const geometry_msgs::Point& position, con
   GetNeighborCellIndices(center_cell_sub, neighbor_range, neighbor_indices);
 }
 
-void GridWorld::GetExploringCellIndices(std::vector<int>& exploring_cell_indices)
-{
-  exploring_cell_indices.clear();
-  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
-  {
-    if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
-    {
-      exploring_cell_indices.push_back(i);
-    }
-  }
-}
-
-void GridWorld::GetUnseenCellIndices(std::vector<int>& unseen_cell_indices)
-{
-  unseen_cell_indices.clear();
-  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
-  {
-    if (subspaces_->GetCell(i).GetStatus() == CellStatus::UNSEEN)
-    {
-      unseen_cell_indices.push_back(i);
-    }
-  }
-}
-
 CellStatus GridWorld::GetCellStatus(int cell_ind)
 {
   MY_ASSERT(subspaces_->InRange(cell_ind));
@@ -545,49 +521,70 @@ int GridWorld::GetCellStatusCount(grid_world_ns::CellStatus status)
   return count;
 }
 
-//added by Jerome
-void GridWorld::GetCoveredCellIndices(std::vector<int>& covered_cell_indices)
+//added by Jerome, improved by Keith
+void GridWorld::GetExploringCellIndices(std::vector<std::vector<int>>& exploring_cell_indices)
+{
+  exploring_cell_indices.clear();
+  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
+  {
+    if (subspaces_->GetCell(i).GetStatus() == CellStatus::EXPLORING)
+    {
+      std::vector<int> connected_cell_indices = subspaces_->GetCell(i).GetConnectedCellIndices();
+      std::vector<int>::iterator pos  = connected_cell_indices.begin();
+      connected_cell_indices.insert(pos, i);
+      exploring_cell_indices.push_back(connected_cell_indices);
+    }
+  }
+}
+
+void GridWorld::GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cell_indices)
 {
   covered_cell_indices.clear();
   for (int i = 0; i < subspaces_->GetCellNumber(); i++)
   {
     if (subspaces_->GetCell(i).GetStatus() == CellStatus::COVERED)
     {
-      covered_cell_indices.push_back(i);
+      std::vector<int> connected_cell_indices = subspaces_->GetCell(i).GetConnectedCellIndices();
+      std::vector<int>::iterator pos  = connected_cell_indices.begin();
+      connected_cell_indices.insert(pos, i);
+      covered_cell_indices.push_back(connected_cell_indices);
     }
   }
-
 }
 
-//added by Jerome
-void GridWorld::SetCoveredByOthers(std::vector<int>& covered_cell_indices)
+void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg)
 {
-  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
-  {
-    for (auto it = covered_cell_indices.begin(); it != covered_cell_indices.end(); ++it)
-      if (i == *it)
-      {
-        subspaces_->GetCell(i).SetStatus(CellStatus::COVERED_BY_OTHERS);
-      }
-  }
-
-}
-
-//added by Jerome
-void GridWorld::SetExploringCells(std::vector<int>& exploring_cell_indices)
-{
-  for (int i = 0; i < subspaces_->GetCellNumber(); i++)
-  {
-    for (auto it = exploring_cell_indices.begin(); it != exploring_cell_indices.end(); ++it)
-      if (i == *it)
-      {
-        if ((subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED) && (subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED_BY_OTHERS) && (subspaces_->GetCell(i).GetStatus() != CellStatus::NOGO))
-        {
-          subspaces_->GetCell(i).SetStatus(CellStatus::EXPLORING);
+  for (tare_msgs::Subspace subby : covered_cell_msg.data) {
+    int i = subby.main_indice;
+    if ((subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED) && (subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED_BY_OTHERS) && (subspaces_->GetCell(i).GetStatus() != CellStatus::NOGO)) {
+      subspaces_->GetCell(i).SetStatus(CellStatus::COVERED_BY_OTHERS);
+      for (int ci : subby.connected_indices) {
+        std::vector<int> connected = subspaces_->GetCell(i).GetConnectedCellIndices();
+        if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
+          subspaces_->GetCell(i).AddConnectedCell(ci);
+          subspaces_->GetCell(ci).AddConnectedCell(i);
         }
       }
+    }
   }
+}
 
+//added by Jerome, improved by Keith
+void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg)
+{
+  for (tare_msgs::Subspace subby : exploring_cell_msg.data) {
+    int i = subby.main_indice;
+    if ((subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED) && (subspaces_->GetCell(i).GetStatus() != CellStatus::COVERED_BY_OTHERS) && (subspaces_->GetCell(i).GetStatus() != CellStatus::NOGO)) {
+      subspaces_->GetCell(i).SetStatus(CellStatus::EXPLORING);
+      for (int ci : subby.connected_indices) {
+        std::vector<int> connected = subspaces_->GetCell(i).GetConnectedCellIndices();
+        if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
+          subspaces_->GetCell(i).AddConnectedCell(ci);
+          subspaces_->GetCell(ci).AddConnectedCell(i);
+        }
+      }
+    }
+  }
 }
 
 void GridWorld::UpdateCellStatus(const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager)
@@ -816,8 +813,7 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
           connection_point_geo.y = connection_point.y();
           connection_point_geo.z = connection_point.z();
 
-          //bool reachable = false;
-          bool reachable = true;
+          bool reachable = false;
           if (keypose_graph->IsPositionReachable(connection_point_geo))
           {
             reachable = true;
@@ -855,8 +851,6 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
   }
 
   /****** Return home ******/
-  std::cout << exploring_cell_indices.size() << std::endl;
-  std::cout << exploring_cell_indices.empty() << std::endl;
   if (exploring_cell_indices.empty())
   {
     return_home_ = true;

@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   pcl_ros
+  tare_msgs
 )
 
 find_package(PCL REQUIRED)
@@ -29,7 +30,7 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES coverage_planner
-  CATKIN_DEPENDS nav_msgs roscpp rospy sensor_msgs std_msgs pcl_ros 
+  CATKIN_DEPENDS nav_msgs roscpp rospy sensor_msgs std_msgs pcl_ros
 #  DEPENDS system_lib
 )
 

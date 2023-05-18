@@ -225,9 +225,8 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
   waypoint_pub_ = nh.advertise<geometry_msgs::PointStamped>(pp_.pub_waypoint_topic_, 2);
   exploration_finish_pub_ = nh.advertise<std_msgs::Bool>(pp_.pub_exploration_finish_topic_, 2);
   //added by Jerome
-  covered_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Covered_Subspace_Indices", 2);
-  exploring_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Exploring_Subspace_Indices", 2);
-  unseen_subspaces = nh.advertise<std_msgs::Int32MultiArray>("Unseen_Subspace_Indices", 2);
+  covered_subspaces = nh.advertise<tare_msgs::SubspaceArray>("Covered_Subspace_Indices", 2);
+  exploring_subspaces = nh.advertise<tare_msgs::SubspaceArray>("Exploring_Subspace_Indices", 2);
   stop_finish_pub_ = nh.advertise<std_msgs::Bool>("stop", 2);
   exploration_time_pub_ = nh.advertise<std_msgs::Float32>("exploration_time", 2);
   runtime_breakdown_pub_ = nh.advertise<std_msgs::Int32MultiArray>(pp_.pub_runtime_breakdown_topic_, 2);
@@ -318,36 +317,19 @@ void SensorCoveragePlanner3D::RegisteredScanCallback(const sensor_msgs::PointClo
 
 //added by Jerome
 //Get exploring subspaces
-std::vector<int> SensorCoveragePlanner3D::getexplore()
+std::vector<std::vector<int>> SensorCoveragePlanner3D::getexplore()
 {
-  pd_.grid_world_->GetExploringCellIndices(pd_.explore_sub);
-  return pd_.explore_sub;
+  std::vector<std::vector<int>> bobbyex;
+  pd_.grid_world_->GetExploringCellIndices(bobbyex);
+  return bobbyex;
 }
 
 //Get covered subspaces
-std::vector<int> SensorCoveragePlanner3D::getcovered()
+std::vector<std::vector<int>> SensorCoveragePlanner3D::getcovered()
 {
-  pd_.grid_world_->GetCoveredCellIndices(pd_.covered_sub);
-  return pd_.covered_sub;
-}
-
-//Get unseen subspaces
-std::vector<int> SensorCoveragePlanner3D::getunseen()
-{
-  pd_.grid_world_->GetUnseenCellIndices(pd_.unseen_sub);
-  return pd_.unseen_sub;
-}
-
-//Set subspaces covered by others
-void SensorCoveragePlanner3D::coveredbyothers(std::vector<int> vector)
-{
-  pd_.grid_world_->SetCoveredByOthers(vector);
-}
-
-//Set subspaces exploring by others
-void SensorCoveragePlanner3D::exploringbyothers(std::vector<int> vector)
-{
-  pd_.grid_world_->SetExploringCells(vector);
+  std::vector<std::vector<int>> bobbyex;
+  pd_.grid_world_->GetCoveredCellIndices(bobbyex);
+  return bobbyex;
 }
 
 //Get subspace position
@@ -362,20 +344,15 @@ void SensorCoveragePlanner3D::get_sub_pos(std::vector<int> vector)
 }
 
 //Callback to set covered subspaces by other ugv to covered for this ugv
-void SensorCoveragePlanner3D::CoveredSubspacesCallback(const std_msgs::Int32MultiArray& covered_subspaces_msg)
+void SensorCoveragePlanner3D::CoveredSubspacesCallback(const tare_msgs::SubspaceArray& covered_subspaces_msg)
 {
-    std::vector<int> test{};
-    std::vector<int> temp;
-    test = covered_subspaces_msg.data;
-    coveredbyothers(test);
+  pd_.grid_world_->SetCoveredByOthers(covered_subspaces_msg);
 }
 
 //Callback to set exploring subspaces by other ugv to exploring for this ugv
-void SensorCoveragePlanner3D::ExploringSubspacesCallback(const std_msgs::Int32MultiArray& exploring_subspaces_msg)
+void SensorCoveragePlanner3D::ExploringSubspacesCallback(const tare_msgs::SubspaceArray& exploring_subspaces_msg)
 {
-    std::vector<int> test{};
-    test = exploring_subspaces_msg.data;
-    exploringbyothers(test);
+  pd_.grid_world_->SetExploringCells(exploring_subspaces_msg);
 }
 
 void SensorCoveragePlanner3D::TerrainMapCallback(const sensor_msgs::PointCloud2ConstPtr& terrain_map_msg)
@@ -1211,52 +1188,40 @@ void SensorCoveragePlanner3D::PublishWaypoint()
   misc_utils_ns::Publish<geometry_msgs::PointStamped>(waypoint_pub_, waypoint, kWorldFrameID);
 }
 
-//Publish Covered Subspaces - added by Jerome
-void SensorCoveragePlanner3D::PublishCoveredSubspaces(std::vector<int> vector)
+//Publish Covered Subspaces - added by Jerome, updated by Keith
+void SensorCoveragePlanner3D::PublishCoveredSubspaces(std::vector<std::vector<int>> vector)
 {
-  std_msgs::Int32MultiArray msg;
-  // set up dimensions
-  msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-  msg.layout.dim[0].size = vector.size();
-  msg.layout.dim[0].stride = 1;
-  msg.layout.dim[0].label = "CS"; // or whatever name you typically use to index vec1
-
-  // copy in the data
+  tare_msgs::SubspaceArray msg;
+  msg.size = vector.size();
   msg.data.clear();
-  msg.data.insert(msg.data.end(), vector.begin(), vector.end());
+  for (std::vector<int> vecky : vector) {
+    tare_msgs::Subspace subby;
+    subby.main_indice = vecky.front();
+    std::vector<int>::iterator start = vecky.begin();
+    advance(start, 1);
+    subby.connected_indices.clear();
+    subby.connected_indices.insert(subby.connected_indices.end(), start, vecky.end());
+    msg.data.push_back(subby);
+  }
   covered_subspaces.publish(msg);
 }
 
-//Publish Exploring Subspaces - added by Jerome
-void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<int> vector)
+//Publish Exploring Subspaces - added by Jerome, updated by Keith
+void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<std::vector<int>> vector)
 {
-  std_msgs::Int32MultiArray msg;
-  // set up dimensions
-  msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-  msg.layout.dim[0].size = vector.size();
-  msg.layout.dim[0].stride = 1;
-  msg.layout.dim[0].label = "CS"; // or whatever name you typically use to index vec1
-
-  // copy in the data
+  tare_msgs::SubspaceArray msg;
+  msg.size = vector.size();
   msg.data.clear();
-  msg.data.insert(msg.data.end(), vector.begin(), vector.end());
+  for (std::vector<int> vecky : vector) {
+    tare_msgs::Subspace subby;
+    subby.main_indice = vecky.front();
+    std::vector<int>::iterator start = vecky.begin();
+    advance(start, 1);
+    subby.connected_indices.clear();
+    subby.connected_indices.insert(subby.connected_indices.end(), start, vecky.end());
+    msg.data.push_back(subby);
+  }
   exploring_subspaces.publish(msg);
-}
-
-//Publish Exploring Subspaces - added by Keith
-void SensorCoveragePlanner3D::PublishUnseenSubspaces(std::vector<int> vector)
-{
-  std_msgs::Int32MultiArray msg;
-  // set up dimensions
-  msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-  msg.layout.dim[0].size = vector.size();
-  msg.layout.dim[0].stride = 1;
-  msg.layout.dim[0].label = "CS"; // or whatever name you typically use to index vec1
-
-  // copy in the data
-  msg.data.clear();
-  msg.data.insert(msg.data.end(), vector.begin(), vector.end());
-  unseen_subspaces.publish(msg);
 }
 
 void SensorCoveragePlanner3D::PublishRuntime()
@@ -1481,17 +1446,13 @@ void SensorCoveragePlanner3D::pub(const ros::TimerEvent&)
   PublishStoppedState();
   PublishExplorationTime();
 
-  std::vector<int> myvector;
-  myvector = getexplore();
-  PublishExploringSubspaces(myvector);
+  std::vector<std::vector<int>> myexplored;
+  myexplored = getexplore();
+  PublishExploringSubspaces(myexplored);
 
-  std::vector<int> mycovered;
+  std::vector<std::vector<int>> mycovered;
   mycovered = getcovered();
   PublishCoveredSubspaces(mycovered);
-
-  std::vector<int> vecky;
-  vecky = getunseen();
-  PublishUnseenSubspaces(vecky);
 }
 
 }  // namespace sensor_coverage_planner_3d_ns

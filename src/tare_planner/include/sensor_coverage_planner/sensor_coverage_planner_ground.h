@@ -20,6 +20,8 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
+#include <tare_msgs/SubspaceArray.h>
+#include <tare_msgs/Subspace.h>
 
 // ROS
 #include <message_filters/subscriber.h>
@@ -137,7 +139,6 @@ struct PlannerData
 //added by Jerome
   std::vector<int> explore_sub;
   std::vector<int> covered_sub;
-   std::vector<int> unseen_sub;
 
   nav_msgs::Odometry keypose_;
   geometry_msgs::Point robot_position_;
@@ -246,16 +247,14 @@ private:
   //added by Jerome
   ros::Publisher exploring_subspaces;
   ros::Publisher covered_subspaces;
-  ros::Publisher unseen_subspaces;
   ros::Publisher stop_finish_pub_;
   ros::Publisher exploration_time_pub_;
 
 
 
   void exploringbyothers(std::vector<int> vector);
-  std::vector<int> getexplore();
-  std::vector<int> getcovered();
-  std::vector<int> getunseen();
+  std::vector<std::vector<int>> getexplore();
+  std::vector<std::vector<int>> getcovered();
   void coveredbyothers(std::vector<int> vector);
   void get_sub_pos(std::vector<int> vector);
   void get_sub_status();
@@ -278,8 +277,8 @@ private:
   void NogoBoundaryCallback(const geometry_msgs::PolygonStampedConstPtr& polygon_msg);
 
 //added by Jerome
-  void CoveredSubspacesCallback(const std_msgs::Int32MultiArray& covered_subspaces_msg);
-  void ExploringSubspacesCallback(const std_msgs::Int32MultiArray& exploring_subspaces_msg);
+  void CoveredSubspacesCallback(const tare_msgs::SubspaceArray& covered_subspaces_msg);
+  void ExploringSubspacesCallback(const tare_msgs::SubspaceArray& exploring_subspaces_msg);
   void prioritycallback(const std_msgs::Int32& priority_msg);
 
 
@@ -303,9 +302,8 @@ private:
       const exploration_path_ns::ExplorationPath& global_path, const exploration_path_ns::ExplorationPath& local_path);
 
 //added by Jerome
-  void PublishCoveredSubspaces(std::vector<int> vector);
-  void PublishExploringSubspaces(std::vector<int> vector);
-  void PublishUnseenSubspaces(std::vector<int> vector);
+  void PublishCoveredSubspaces(std::vector<std::vector<int>> vector);
+  void PublishExploringSubspaces(std::vector<std::vector<int>> vector);
   void PublishStoppedState();
   void PublishExplorationTime();
 

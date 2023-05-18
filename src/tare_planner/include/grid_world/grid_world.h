@@ -19,6 +19,8 @@
 #include <geometry_msgs/Point.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Path.h>
+#include <tare_msgs/SubspaceArray.h>
+#include <tare_msgs/Subspace.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -211,7 +213,7 @@ private:
 class GridWorld
 {
 public:
-  std::vector<int> r(){
+  std::vector<std::vector<int>> r(){
     GetExploringCellIndices(myvector);
     return myvector;
   }
@@ -307,11 +309,10 @@ public:
                               std::vector<int>& neighbor_indices);
   void GetNeighborCellIndices(const geometry_msgs::Point& position, const Eigen::Vector3i& neighbor_range,
                               std::vector<int>& neighbor_indices);
-  void GetExploringCellIndices(std::vector<int>& exploring_cell_indices);
-  void GetCoveredCellIndices(std::vector<int>& covered_cell_indices);
-  void GetUnseenCellIndices(std::vector<int>& unseen_cell_indices);
-  void SetCoveredByOthers(std::vector<int>& covered_cell_indices);
-  void SetExploringCells(std::vector<int>& exploring_cell_indices);
+  void GetExploringCellIndices(std::vector<std::vector<int>>& exploring_cell_indices);
+  void GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cell_indices);
+  void SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg);
+  void SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg);
   CellStatus GetCellStatus(int cell_ind);
   void SetCellStatus(int cell_ind, CellStatus status);
   geometry_msgs::Point GetCellPosition(int cell_ind);
@@ -382,7 +383,7 @@ private:
   int kCellAlmostCoveredToExploringThr;
   int kCellUnknownToExploringThr;
 
-  std::vector<int> myvector;
+  std::vector<std::vector<int>> myvector;
 
   std::vector<Cell> cells_;
   std::unique_ptr<grid_ns::Grid<Cell>> subspaces_;
