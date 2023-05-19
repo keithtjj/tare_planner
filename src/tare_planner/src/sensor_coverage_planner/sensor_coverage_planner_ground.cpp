@@ -227,8 +227,6 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
   exploration_path_publisher_ = nh.advertise<nav_msgs::Path>("exploration_path", 1);
   waypoint_pub_ = nh.advertise<geometry_msgs::PointStamped>(pp_.pub_waypoint_topic_, 2);
   exploration_finish_pub_ = nh.advertise<std_msgs::Bool>(pp_.pub_exploration_finish_topic_, 2);
-  //added by keith
-  keypose_node_pub = nh.advertise<nav_msgs::Odometry>("new_keypose", 10);
   //added by Jerome
   covered_subspaces = nh.advertise<tare_msgs::SubspaceArray>("Covered_Subspace_Indices", 2);
   exploring_subspaces = nh.advertise<tare_msgs::SubspaceArray>("Exploring_Subspace_Indices", 2);
@@ -308,7 +306,6 @@ void SensorCoveragePlanner3D::RegisteredScanCallback(const sensor_msgs::PointClo
     pd_.keypose_.pose.pose.position = pd_.robot_position_;
     pd_.keypose_.pose.covariance[0] = keypose_count_++;
     pd_.cur_keypose_node_ind_ = pd_.keypose_graph_->AddKeyposeNode(pd_.keypose_, *(pd_.planning_env_));
-    keypose_node_pub.publish(pd_.keypose_);
 
     pointcloud_downsizer_.Downsize(pd_.registered_scan_stack_->cloud_, pp_.kKeyposeCloudDwzFilterLeafSize,
                                    pp_.kKeyposeCloudDwzFilterLeafSize, pp_.kKeyposeCloudDwzFilterLeafSize);
@@ -1230,9 +1227,10 @@ void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<std::vector<
   exploring_subspaces.publish(msg);
 }
 
-void SensorCoveragePlanner3D::OtherKeyposeCallback(const nav_msgs::Odometry& keypose_msg)
+void SensorCoveragePlanner3D::OtherKeyposeCallback(const tare_msgs::NodeAndEdge& keypose_msg)
 {
-  pd_.keypose_graph_->AddKeyposeNode(keypose_msg, *(pd_.planning_env_));
+  pd_.keypose_graph_->AddNodeAndEdge(keypose_msg.position, keypose_msg.node_ind, keypose_msg.keypose_id, keypose_msg.is_keypose,
+                                      keypose_msg.connected_node_ind, keypose_msg.connected_node_dist);
 }
 
 void SensorCoveragePlanner3D::PublishRuntime()

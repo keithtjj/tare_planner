@@ -17,6 +17,10 @@
 #include <nav_msgs/Path.h>
 #include <visualization_msgs/Marker.h>
 
+//added by keith
+#include <ros/ros.h>
+#include <tare_msgs/NodeAndEdge.h>
+
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -191,6 +195,8 @@ public:
   void GetKeyposePositions(std::vector<Eigen::Vector3d>& positions);
   void GetNodePositions(std::vector<Eigen::Vector3d>& positions);
   geometry_msgs::Point GetNodePosition(int node_ind);
+  //added by keith
+  ros::Publisher keypose_node_pub;
 };
 
 #endif  // SENSOR_COVERAGE_PLANNER_KEYPOSE_GRAPH_H

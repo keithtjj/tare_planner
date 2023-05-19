@@ -22,6 +22,7 @@
 #include <geometry_msgs/PoseArray.h>
 #include <tare_msgs/SubspaceArray.h>
 #include <tare_msgs/Subspace.h>
+#include <tare_msgs/NodeAndEdge.h>
 
 // ROS
 #include <message_filters/subscriber.h>
@@ -251,9 +252,6 @@ private:
   ros::Publisher covered_subspaces;
   ros::Publisher stop_finish_pub_;
   ros::Publisher exploration_time_pub_;
-  //added by keith
-  ros::Publisher keypose_node_pub;
-
 
 
   void exploringbyothers(std::vector<int> vector);
@@ -269,7 +267,7 @@ private:
 
   // Callback functions
   //added by keith
-  void OtherKeyposeCallback(const nav_msgs::Odometry& keypose_msg);
+  void OtherKeyposeCallback(const tare_msgs::NodeAndEdge& keypose_msg);
 
   void ExplorationStartCallback(const std_msgs::Bool::ConstPtr& start_msg);
   void StateEstimationCallback(const nav_msgs::Odometry::ConstPtr& state_estimation_msg);

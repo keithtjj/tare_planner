@@ -40,6 +40,8 @@ KeyposeGraph::KeyposeGraph(ros::NodeHandle& nh)
   connected_nodes_cloud_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
   kdtree_nodes_ = pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr(new pcl::KdTreeFLANN<pcl::PointXYZI>());
   nodes_cloud_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
+  //added by keith
+  keypose_node_pub = nh.advertise<tare_msgs::NodeAndEdge>("new_keypose", 10);
 }
 
 void KeyposeGraph::ReadParameters(ros::NodeHandle& nh)
@@ -70,6 +72,14 @@ void KeyposeGraph::AddNodeAndEdge(const geometry_msgs::Point& position, int node
 {
   AddNode(position, node_ind, keypose_id, is_keypose);
   AddEdge(connected_node_ind, node_ind, connected_node_dist);
+  tare_msgs::NodeAndEdge msg;
+  msg.position = position;
+  msg.node_ind = node_ind;
+  msg.keypose_id = keypose_id;
+  msg.is_keypose = is_keypose;
+  msg.connected_node_ind = connected_node_ind;
+  msg.connected_node_dist = connected_node_dist;
+  keypose_node_pub.publish(msg);
 }
 
 void KeyposeGraph::AddEdge(int from_node_ind, int to_node_ind, double dist)
