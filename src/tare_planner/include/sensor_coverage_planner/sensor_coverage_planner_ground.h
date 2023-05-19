@@ -229,6 +229,8 @@ private:
 //added by Jerome
   ros::Subscriber covered_subspaces_sub_;
   ros::Subscriber exploring_subspaces_sub_;
+  //added by keith
+  ros::Subscriber keypose_node_sub;
 
   // ROS publishers
   ros::Publisher global_path_full_publisher_;
@@ -249,6 +251,8 @@ private:
   ros::Publisher covered_subspaces;
   ros::Publisher stop_finish_pub_;
   ros::Publisher exploration_time_pub_;
+  //added by keith
+  ros::Publisher keypose_node_pub;
 
 
 
@@ -264,8 +268,8 @@ private:
 
 
   // Callback functions
-  //added by Jerome
-  void odomcallback(const nav_msgs::Odometry::ConstPtr& state_estimation_msg);
+  //added by keith
+  void OtherKeyposeCallback(const nav_msgs::Odometry& keypose_msg);
 
   void ExplorationStartCallback(const std_msgs::Bool::ConstPtr& start_msg);
   void StateEstimationCallback(const nav_msgs::Odometry::ConstPtr& state_estimation_msg);
