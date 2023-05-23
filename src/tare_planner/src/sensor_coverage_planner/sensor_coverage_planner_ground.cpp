@@ -1229,8 +1229,19 @@ void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<std::vector<
 
 void SensorCoveragePlanner3D::OtherKeyposeCallback(const tare_msgs::NodeAndEdge& keypose_msg)
 {
+  if (keypose_msg.node_ind == 0 && keypose_msg.node_ind == 0)
+  {
+    return;
+  }
+  if (keypose_msg.connected_node_ind == 0 && keypose_msg.connected_node_dist == 0)
+  {
+    pd_.keypose_graph_->AddNode(keypose_msg.position, keypose_msg.node_ind, keypose_msg.node_ind, keypose_msg.is_keypose);
+  }
+  else
+  {
   pd_.keypose_graph_->AddNodeAndEdge(keypose_msg.position, keypose_msg.node_ind, keypose_msg.keypose_id, keypose_msg.is_keypose,
                                       keypose_msg.connected_node_ind, keypose_msg.connected_node_dist);
+  }
 }
 
 void SensorCoveragePlanner3D::PublishRuntime()

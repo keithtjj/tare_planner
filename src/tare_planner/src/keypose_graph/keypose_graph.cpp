@@ -66,12 +66,23 @@ void KeyposeGraph::AddNode(const geometry_msgs::Point& position, int node_ind, i
   graph_.push_back(neighbors);
   std::vector<double> neighbor_dist;
   dist_.push_back(neighbor_dist);
+
+  tare_msgs::NodeAndEdge msg;
+  msg.position = position;
+  msg.node_ind = node_ind;
+  msg.keypose_id = keypose_id;
+  msg.is_keypose = is_keypose;
+  msg.connected_node_ind = 0;
+  msg.connected_node_dist = 0;
+  keypose_node_pub.publish(msg);
 }
+
 void KeyposeGraph::AddNodeAndEdge(const geometry_msgs::Point& position, int node_ind, int keypose_id, bool is_keypose,
                                   int connected_node_ind, double connected_node_dist)
 {
   AddNode(position, node_ind, keypose_id, is_keypose);
   AddEdge(connected_node_ind, node_ind, connected_node_dist);
+
   tare_msgs::NodeAndEdge msg;
   msg.position = position;
   msg.node_ind = node_ind;
