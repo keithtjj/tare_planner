@@ -17,6 +17,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Path.h>
 #include <tare_msgs/SubspaceArray.h>
@@ -370,6 +371,8 @@ public:
   bool PathValid(const nav_msgs::Path& path, int from_cell_ind, int to_cell_ind);
   bool HasDirectKeyposeGraphConnection(const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph,
                                        const Eigen::Vector3d& start_position, const Eigen::Vector3d& goal_position);
+  //added by keith
+  ros::Publisher far_goal_pub;
 
 private:
   int kRowNum;

@@ -173,6 +173,8 @@ void GridWorld::ReadParameters(ros::NodeHandle& nh)
   kCellExploringToAlmostCoveredThr = misc_utils_ns::getParam<int>(nh, "kCellExploringToAlmostCoveredThr", 10);
   kCellAlmostCoveredToExploringThr = misc_utils_ns::getParam<int>(nh, "kCellAlmostCoveredToExploringThr", 20);
   kCellUnknownToExploringThr = misc_utils_ns::getParam<int>(nh, "kCellUnknownToExploringThr", 1);
+  //added by keith
+  far_goal_pub = nh.advertise<geometry_msgs::PointStamped>("goal_point", 10);
 }
 
 void GridWorld::UpdateNeighborCells(const geometry_msgs::Point& robot_position)
@@ -851,6 +853,16 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
           if (reachable)
           {
             exploring_cell_positions.push_back(connection_point_geo);
+            exploring_cell_indices.push_back(i);
+          }
+          //keith moment
+          else if (exploring_cell_indices.empty())
+          {
+            geometry_msgs::PointStamped goal_point;
+            goal_point.header.frame_id = "map";
+            goal_point.point = GetCellPosition(i);
+            far_goal_pub.publish(goal_point);
+            exploring_cell_positions.push_back(GetCellPosition(i));
             exploring_cell_indices.push_back(i);
           }
         }

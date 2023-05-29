@@ -74,7 +74,7 @@ void KeyposeGraph::AddNode(const geometry_msgs::Point& position, int node_ind, i
   msg.is_keypose = is_keypose;
   msg.connected_node_ind = 0;
   msg.connected_node_dist = 0;
-  keypose_node_pub.publish(msg);
+  //keypose_node_pub.publish(msg);
 }
 
 void KeyposeGraph::AddNodeAndEdge(const geometry_msgs::Point& position, int node_ind, int keypose_id, bool is_keypose,
@@ -90,7 +90,7 @@ void KeyposeGraph::AddNodeAndEdge(const geometry_msgs::Point& position, int node
   msg.is_keypose = is_keypose;
   msg.connected_node_ind = connected_node_ind;
   msg.connected_node_dist = connected_node_dist;
-  keypose_node_pub.publish(msg);
+  //keypose_node_pub.publish(msg);
 }
 
 void KeyposeGraph::AddEdge(int from_node_ind, int to_node_ind, double dist)
