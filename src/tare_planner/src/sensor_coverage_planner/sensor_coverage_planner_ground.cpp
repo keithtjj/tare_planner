@@ -109,7 +109,7 @@ void PlannerData::Initialize(ros::NodeHandle& nh, ros::NodeHandle& nh_p)
   local_coverage_planner_->SetViewPointManager(viewpoint_manager_);
   keypose_graph_ = std::make_unique<keypose_graph_ns::KeyposeGraph>(nh_p);
   grid_world_ = std::make_unique<grid_world_ns::GridWorld>(nh_p);
-  grid_world_->SetUseKeyposeGraph(false);
+  grid_world_->SetUseKeyposeGraph(true);
   visualizer_ = std::make_unique<tare_visualizer_ns::TAREVisualizer>(nh, nh_p);
 
   initial_position_.x() = 0.0;
