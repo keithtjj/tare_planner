@@ -346,16 +346,16 @@ void SensorCoveragePlanner3D::get_sub_pos(std::vector<int> vector)
   }
 }
 
-//Callback to set covered subspaces by other ugv to covered for this ugv
+//Callback to set covered subspaces by other ugv to covered for this ugv, by keith & jerome
 void SensorCoveragePlanner3D::CoveredSubspacesCallback(const tare_msgs::SubspaceArray& covered_subspaces_msg)
 {
-  pd_.grid_world_->SetCoveredByOthers(covered_subspaces_msg, pd_.viewpoint_manager_, pd_.keypose_graph_);
+  pd_.grid_world_->SetCoveredByOthers(covered_subspaces_msg);
 }
 
-//Callback to set exploring subspaces by other ugv to exploring for this ugv
+//Callback to set exploring subspaces by other ugv to exploring for this ugv, by keith & jerome
 void SensorCoveragePlanner3D::ExploringSubspacesCallback(const tare_msgs::SubspaceArray& exploring_subspaces_msg)
 {
-  pd_.grid_world_->SetExploringCells(exploring_subspaces_msg, pd_.viewpoint_manager_, pd_.keypose_graph_);
+  pd_.grid_world_->SetExploringCells(exploring_subspaces_msg);
 }
 
 void SensorCoveragePlanner3D::TerrainMapCallback(const sensor_msgs::PointCloud2ConstPtr& terrain_map_msg)

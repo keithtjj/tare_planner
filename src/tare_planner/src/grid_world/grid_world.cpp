@@ -554,9 +554,7 @@ void GridWorld::GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cel
   }
 }
 
-void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg, 
-                                   const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
-                                   const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph)
+void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg)
 {
   for (tare_msgs::Subspace subby : covered_cell_msg.data) {
     int i = subby.main_indice;
@@ -567,8 +565,6 @@ void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_
         if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
           subspaces_->GetCell(i).AddConnectedCell(ci);
           subspaces_->GetCell(ci).AddConnectedCell(i);
-          nav_msgs::Path path_in_between = viewpoint_manager->GetViewPointShortestPath(i, ci);
-          keypose_graph->AddPath(path_in_between);
         }
       }
     }
@@ -576,9 +572,7 @@ void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_
 }
 
 //added by Jerome, improved by Keith
-void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg, 
-                                  const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
-                                  const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph)
+void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg)
 {
   for (tare_msgs::Subspace subby : exploring_cell_msg.data) {
     int i = subby.main_indice;
@@ -589,8 +583,6 @@ void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell
         if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
           subspaces_->GetCell(i).AddConnectedCell(ci);
           subspaces_->GetCell(ci).AddConnectedCell(i);
-          nav_msgs::Path path_in_between = viewpoint_manager->GetViewPointShortestPath(i, ci);
-          keypose_graph->AddPath(path_in_between);
         }
       }
     }
@@ -856,7 +848,7 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
             exploring_cell_indices.push_back(i);
           }
           //keith moment
-          else if (exploring_cell_indices.empty())
+          else if (exploring_cell_indices.empty() && i == subspaces_->GetCellNumber())
           {
             geometry_msgs::PointStamped goal_point;
             goal_point.header.frame_id = "map";
