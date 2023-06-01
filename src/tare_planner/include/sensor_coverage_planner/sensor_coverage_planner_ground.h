@@ -22,7 +22,6 @@
 #include <geometry_msgs/PoseArray.h>
 #include <tare_msgs/SubspaceArray.h>
 #include <tare_msgs/Subspace.h>
-#include <tare_msgs/NodeAndEdge.h>
 
 // ROS
 #include <message_filters/subscriber.h>
@@ -230,8 +229,6 @@ private:
 //added by Jerome
   ros::Subscriber covered_subspaces_sub_;
   ros::Subscriber exploring_subspaces_sub_;
-  //added by keith
-  ros::Subscriber keypose_node_sub;
 
   // ROS publishers
   ros::Publisher global_path_full_publisher_;
@@ -266,9 +263,6 @@ private:
 
 
   // Callback functions
-  //added by keith
-  void OtherKeyposeCallback(const tare_msgs::NodeAndEdge& keypose_msg);
-
   void ExplorationStartCallback(const std_msgs::Bool::ConstPtr& start_msg);
   void StateEstimationCallback(const nav_msgs::Odometry::ConstPtr& state_estimation_msg);
   void RegisteredScanCallback(const sensor_msgs::PointCloud2ConstPtr& registered_cloud_msg);

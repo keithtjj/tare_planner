@@ -17,6 +17,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Path.h>
 #include <tare_msgs/SubspaceArray.h>
@@ -311,12 +312,10 @@ public:
                               std::vector<int>& neighbor_indices);
   void GetExploringCellIndices(std::vector<std::vector<int>>& exploring_cell_indices);
   void GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cell_indices);
-  void SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg,
-                          const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
-                          const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph);
-  void SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg, 
-                         const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
-                         const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph);
+  // keith was here
+  void SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg);
+  void SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg);
+
   CellStatus GetCellStatus(int cell_ind);
   void SetCellStatus(int cell_ind, CellStatus status);
   geometry_msgs::Point GetCellPosition(int cell_ind);
@@ -370,6 +369,9 @@ public:
   bool PathValid(const nav_msgs::Path& path, int from_cell_ind, int to_cell_ind);
   bool HasDirectKeyposeGraphConnection(const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph,
                                        const Eigen::Vector3d& start_position, const Eigen::Vector3d& goal_position);
+  //added by keith
+  ros::Publisher unreachable_pub;
+  ros::Publisher tsp_next_pub;
 
 private:
   int kRowNum;

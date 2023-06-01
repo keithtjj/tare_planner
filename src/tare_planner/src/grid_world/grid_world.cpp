@@ -173,6 +173,9 @@ void GridWorld::ReadParameters(ros::NodeHandle& nh)
   kCellExploringToAlmostCoveredThr = misc_utils_ns::getParam<int>(nh, "kCellExploringToAlmostCoveredThr", 10);
   kCellAlmostCoveredToExploringThr = misc_utils_ns::getParam<int>(nh, "kCellAlmostCoveredToExploringThr", 20);
   kCellUnknownToExploringThr = misc_utils_ns::getParam<int>(nh, "kCellUnknownToExploringThr", 1);
+  //added by keith
+  unreachable_pub = nh.advertise<geometry_msgs::PointStamped>("unreachable", 1);
+  tsp_next_pub = nh.advertise<geometry_msgs::PointStamped>("tsp_next", 1);
 }
 
 void GridWorld::UpdateNeighborCells(const geometry_msgs::Point& robot_position)
@@ -552,9 +555,7 @@ void GridWorld::GetCoveredCellIndices(std::vector<std::vector<int>>& covered_cel
   }
 }
 
-void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg, 
-                                   const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
-                                   const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph)
+void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg)
 {
   for (tare_msgs::Subspace subby : covered_cell_msg.data) {
     int i = subby.main_indice;
@@ -565,8 +566,6 @@ void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_
         if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
           subspaces_->GetCell(i).AddConnectedCell(ci);
           subspaces_->GetCell(ci).AddConnectedCell(i);
-          nav_msgs::Path path_in_between = viewpoint_manager->GetViewPointShortestPath(i, ci);
-          keypose_graph->AddPath(path_in_between);
         }
       }
     }
@@ -574,9 +573,7 @@ void GridWorld::SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_
 }
 
 //added by Jerome, improved by Keith
-void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg, 
-                                  const std::shared_ptr<viewpoint_manager_ns::ViewPointManager>& viewpoint_manager,
-                                  const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph)
+void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg)
 {
   for (tare_msgs::Subspace subby : exploring_cell_msg.data) {
     int i = subby.main_indice;
@@ -587,8 +584,6 @@ void GridWorld::SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell
         if (std::find(connected.begin(), connected.end(), ci) == connected.end()) {
           subspaces_->GetCell(i).AddConnectedCell(ci);
           subspaces_->GetCell(ci).AddConnectedCell(i);
-          nav_msgs::Path path_in_between = viewpoint_manager->GetViewPointShortestPath(i, ci);
-          keypose_graph->AddPath(path_in_between);
         }
       }
     }
@@ -853,6 +848,17 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
             exploring_cell_positions.push_back(connection_point_geo);
             exploring_cell_indices.push_back(i);
           }
+          //keith moment
+          else if (exploring_cell_indices.empty())
+          {
+            geometry_msgs::PointStamped goal_point;
+            goal_point.header.stamp = ros::Time::now();
+            goal_point.header.frame_id = "map";
+            goal_point.point = GetCellPosition(i);
+            unreachable_pub.publish(goal_point);
+            exploring_cell_positions.push_back(GetCellPosition(i));
+            exploring_cell_indices.push_back(i);
+          }
         }
       }
     }
@@ -1028,7 +1034,12 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
       global_path.Append(global_path.nodes_[0]);
     }
   }
-
+  // keith doing things
+  geometry_msgs::PointStamped first_node;
+  first_node.header.stamp = ros::Time::now();
+  first_node.header.frame_id = "map";
+  first_node.point = exploring_cell_positions[node_index[1]];
+  tsp_next_pub.publish(first_node);
   // std::cout << "path order: ";
   // for (int i = 0; i < ordered_cell_indices.size(); i++)
   // {
