@@ -215,9 +215,6 @@ bool SensorCoveragePlanner3D::initialize(ros::NodeHandle& nh, ros::NodeHandle& n
       nh.subscribe("/Combined_Covered_Indices", 1, &SensorCoveragePlanner3D::CoveredSubspacesCallback, this);
   exploring_subspaces_sub_ =
       nh.subscribe("/Combined_Exploring_Indices", 1, &SensorCoveragePlanner3D::ExploringSubspacesCallback, this);
-  //added by keith
-  keypose_node_sub = 
-      nh.subscribe("/other_keypose", 1, &SensorCoveragePlanner3D::OtherKeyposeCallback, this);
 
   global_path_full_publisher_ = nh.advertise<nav_msgs::Path>("global_path_full", 1);
   global_path_publisher_ = nh.advertise<nav_msgs::Path>("global_path", 1);
@@ -1225,23 +1222,6 @@ void SensorCoveragePlanner3D::PublishExploringSubspaces(std::vector<std::vector<
     msg.data.push_back(subby);
   }
   exploring_subspaces.publish(msg);
-}
-
-void SensorCoveragePlanner3D::OtherKeyposeCallback(const tare_msgs::NodeAndEdge& keypose_msg)
-{
-  if (keypose_msg.node_ind == 0 && keypose_msg.node_ind == 0)
-  {
-    return;
-  }
-  if (keypose_msg.connected_node_ind == 0 && keypose_msg.connected_node_dist == 0)
-  {
-    pd_.keypose_graph_->AddNode(keypose_msg.position, keypose_msg.node_ind, keypose_msg.node_ind, keypose_msg.is_keypose);
-  }
-  else
-  {
-  pd_.keypose_graph_->AddNodeAndEdge(keypose_msg.position, keypose_msg.node_ind, keypose_msg.keypose_id, keypose_msg.is_keypose,
-                                      keypose_msg.connected_node_ind, keypose_msg.connected_node_dist);
-  }
 }
 
 void SensorCoveragePlanner3D::PublishRuntime()

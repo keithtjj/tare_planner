@@ -19,8 +19,6 @@
 
 //added by keith
 #include <ros/ros.h>
-#include <tare_msgs/NodeAndEdge.h>
-
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
