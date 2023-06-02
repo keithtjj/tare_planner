@@ -315,6 +315,7 @@ public:
   // keith was here
   void SetCoveredByOthers(const tare_msgs::SubspaceArray& covered_cell_msg);
   void SetExploringCells(const tare_msgs::SubspaceArray& exploring_cell_msg);
+
   CellStatus GetCellStatus(int cell_ind);
   void SetCellStatus(int cell_ind, CellStatus status);
   geometry_msgs::Point GetCellPosition(int cell_ind);
@@ -369,7 +370,8 @@ public:
   bool HasDirectKeyposeGraphConnection(const std::unique_ptr<keypose_graph_ns::KeyposeGraph>& keypose_graph,
                                        const Eigen::Vector3d& start_position, const Eigen::Vector3d& goal_position);
   //added by keith
-  ros::Publisher far_goal_pub;
+  ros::Publisher unreachable_pub;
+  ros::Publisher tsp_next_pub;
 
 private:
   int kRowNum;

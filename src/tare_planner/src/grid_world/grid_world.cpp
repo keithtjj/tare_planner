@@ -174,7 +174,8 @@ void GridWorld::ReadParameters(ros::NodeHandle& nh)
   kCellAlmostCoveredToExploringThr = misc_utils_ns::getParam<int>(nh, "kCellAlmostCoveredToExploringThr", 20);
   kCellUnknownToExploringThr = misc_utils_ns::getParam<int>(nh, "kCellUnknownToExploringThr", 1);
   //added by keith
-  far_goal_pub = nh.advertise<geometry_msgs::PointStamped>("goal_point", 10);
+  unreachable_pub = nh.advertise<geometry_msgs::PointStamped>("unreachable", 1);
+  tsp_next_pub = nh.advertise<geometry_msgs::PointStamped>("tsp_next", 1);
 }
 
 void GridWorld::UpdateNeighborCells(const geometry_msgs::Point& robot_position)
@@ -848,12 +849,13 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
             exploring_cell_indices.push_back(i);
           }
           //keith moment
-          else if (exploring_cell_indices.empty() && i == subspaces_->GetCellNumber())
+          else if (exploring_cell_indices.empty())
           {
             geometry_msgs::PointStamped goal_point;
+            goal_point.header.stamp = ros::Time::now();
             goal_point.header.frame_id = "map";
             goal_point.point = GetCellPosition(i);
-            far_goal_pub.publish(goal_point);
+            unreachable_pub.publish(goal_point);
             exploring_cell_positions.push_back(GetCellPosition(i));
             exploring_cell_indices.push_back(i);
           }
@@ -1032,7 +1034,12 @@ exploration_path_ns::ExplorationPath GridWorld::SolveGlobalTSP(
       global_path.Append(global_path.nodes_[0]);
     }
   }
-
+  // keith doing things
+  geometry_msgs::PointStamped first_node;
+  first_node.header.stamp = ros::Time::now();
+  first_node.header.frame_id = "map";
+  first_node.point = exploring_cell_positions[node_index[1]];
+  tsp_next_pub.publish(first_node);
   // std::cout << "path order: ";
   // for (int i = 0; i < ordered_cell_indices.size(); i++)
   // {
