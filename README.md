@@ -1,10 +1,6 @@
 # Add-ons to TARE
-Ctrl + F 'keith' or 'jerome'
-
-## Changed files
-sensor\_coverage\_planner
-grid_world
-keypose_graph
+Ctrl + F 'keith' or 'jerome'  
+See wiki for more details.
 
 ---
 
